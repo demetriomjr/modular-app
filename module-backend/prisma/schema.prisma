@@ -1,0 +1,53 @@
+generator client {
+  provider        = "prisma-client"
+  output          = "./generated/prisma"
+  moduleFormat    = "cjs"
+  previewFeatures = ["multiSchema"]
+}
+
+datasource db {
+  provider = "postgresql"
+  schemas  = ["pos"]
+}
+
+// Local Product model for POS (to be integrated later)
+model Product {
+  id    String @id @default(uuid())
+  name  String
+  price Decimal
+  stock Int
+
+  saleItems SaleItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@schema("pos")
+}
+
+model Sale {
+  id            String     @id @default(uuid())
+  totalAmount   Decimal
+  status        String     @default("COMPLETED") // PENDING, COMPLETED, CANCELLED
+  paymentMethod String?
+  installments  Int        @default(1)
+  isPaid        Boolean    @default(false)
+  items         SaleItem[]
+  
+  createdAt     DateTime   @default(now())
+  
+  @@schema("pos")
+}
+
+model SaleItem {
+  id        String  @id @default(uuid())
+  saleId    String
+  sale      Sale    @relation(fields: [saleId], references: [id])
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
+  quantity  Int
+  unitPrice Decimal
+  total     Decimal
+  
+  @@schema("pos")
+}

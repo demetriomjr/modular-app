@@ -1,0 +1,85 @@
+generator client {
+  provider     = "prisma-client-js"
+  output       = "./generated/prisma"
+  moduleFormat = "cjs"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Supplier {
+  id    String @id @default(uuid())
+  name  String
+  email String
+  phone String
+}
+
+model Customer {
+  id     String  @id @default(uuid())
+  name   String
+  email  String
+  phone  String
+  orders Order[]
+}
+
+enum OrderStatus {
+  PENDING
+  COMPLETED
+  CANCELLED
+}
+
+model Order {
+  id          String      @id @default(uuid())
+  orderNumber String      @unique
+  date        DateTime    @default(now())
+  totalAmount Float
+  status      OrderStatus @default(PENDING)
+
+  customerId String
+  customer   Customer @relation(fields: [customerId], references: [id])
+
+  accountReceivables AccountReceivable[]
+}
+
+enum PaymentStatus {
+  OPEN
+  PAID
+}
+
+model AccountReceivable {
+  id            String        @id @default(uuid())
+  description   String
+  amount        Float
+  dueDate       DateTime
+  status        PaymentStatus @default(OPEN)
+  paymentMethod String
+  installments  Int           @default(1)
+
+  orderId String?
+  order   Order?  @relation(fields: [orderId], references: [id])
+}
+
+model User {
+  id        String             @id @default(uuid())
+  username  String             @unique
+  password  String
+  name      String
+  createdAt DateTime           @default(now())
+  updatedAt DateTime           @updatedAt
+  modules   ModuleDefinition[]
+}
+
+model ModuleDefinition {
+  id            String  @id @default(uuid())
+  name          String
+  route         String  @unique
+  menuLabel     String
+  menuGroup     String?
+  icon          String?
+  remoteEntry   String
+  scope         String
+  exposedModule String
+  enabled       Boolean @default(true)
+  users         User[]
+}
